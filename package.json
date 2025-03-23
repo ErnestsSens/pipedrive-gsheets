@@ -1,14 +1,22 @@
 {
-  "name": "pipedrive-api",
+  "name": "pipedrive-gsheets",
   "version": "1.0.0",
-  "description": "Pipedrive API integration",
+  "description": "Pipedrive to Google Sheets integration",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "check-env": "node -e \"console.log('Checking environment variables...'); const requiredVars = ['API_KEY', 'BASE_URL', 'GOOGLE_SHEETS_ID', 'GOOGLE_APPLICATION_CREDENTIALS']; let missing = requiredVars.filter(v => !process.env[v]); if (missing.length) { console.error('❌ Missing env vars: ' + missing.join(', ')); process.exit(1); } else { console.log('✅ All required environment variables are set.'); }\""
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "googleapis": "^148.0.0"
+    "axios": "1.6.0",
+    "dotenv": "16.3.1",
+    "googleapis": "148.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

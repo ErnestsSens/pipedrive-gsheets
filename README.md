@@ -37,4 +37,48 @@ You can set the following filters in your `.env` file:
 
 ## Usage
 
-Run `npm start` to fetch deals and export them to Google Sheets. 
+Run `npm start` to fetch deals and export them to Google Sheets.
+
+## Data Retention Policy
+
+**Important:** This script completely clears the Google Sheet before writing new data. Each run will replace all existing data with the latest deals from Pipedrive.
+
+## Scheduling
+
+To run this script automatically on a schedule:
+
+### On Linux/macOS (using cron):
+```bash
+# Edit crontab
+crontab -e
+
+# Add line to run daily at 6 AM
+0 6 * * * cd /path/to/project && /usr/bin/node index.js >> /path/to/logfile.log 2>&1
+```
+
+### On Windows (using Task Scheduler):
+1. Open Task Scheduler
+2. Create a new Basic Task
+3. Set the trigger (e.g., daily)
+4. Set the action to "Start a program"
+5. Program/script: `node`
+6. Add arguments: `index.js`
+7. Start in: `C:\path\to\your\project\directory`
+
+## Rate Limits
+
+Pipedrive has API rate limits of 1000-2000 requests per hour depending on your plan. This script implements a small delay between requests to help manage these limits.
+
+## Troubleshooting
+
+### Google Sheets API not enabled
+Error: `Google Sheets API has not been used in project... or it is disabled`
+Solution: Visit the URL in the error message to enable the API, then wait a few minutes before retrying.
+
+### Authentication errors
+Error: `Error saving to Google Sheets: No credentials...`
+Solution: Make sure your `service-account.json` file is in the root directory and referenced correctly in your `.env` file.
+
+### Permission errors
+Error: `Error saving to Google Sheets: The caller does not have permission`
+Solution: Ensure you've shared your Google Sheet with the service account email with Editor permissions. 

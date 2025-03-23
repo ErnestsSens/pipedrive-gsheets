@@ -2,6 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 const { google } = require('googleapis');
 const path = require('path');
+const fs = require('fs');
 
 // Fix environment variable names to match .env file
 const PIPEDRIVE_API_KEY = process.env.API_KEY;
@@ -10,6 +11,30 @@ const PIPEDRIVE_BASE_URL = process.env.BASE_URL;
 // Google Sheets configuration
 const GOOGLE_SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
 const GOOGLE_SHEET_NAME = process.env.GOOGLE_SHEET_NAME || 'Deals';
+
+// Log file path
+const LOG_FILE_PATH = path.join(process.cwd(), 'log.txt');
+
+// Helper function for better logging with timestamps
+function log(message, isError = false) {
+    const timestamp = new Date().toISOString();
+    const logPrefix = `[${timestamp}]`;
+    const logMessage = `${logPrefix} ${isError ? 'ERROR: ' : ''}${message}`;
+    
+    // Console output
+    if (isError) {
+        console.error(logMessage);
+    } else {
+        console.log(logMessage);
+    }
+    
+    // File logging
+    try {
+        fs.appendFileSync(LOG_FILE_PATH, logMessage + '\n');
+    } catch (err) {
+        console.error(`Failed to write to log file: ${err.message}`);
+    }
+}
 
 // Custom field ID mapping to readable names
 const CUSTOM_FIELDS = {
@@ -37,7 +62,7 @@ async function getGoogleSheetsAuth() {
         const client = await auth.getClient();
         return google.sheets({ version: 'v4', auth: client });
     } catch (error) {
-        console.error('Error authenticating with Google Sheets:', error.message);
+        log(`Error authenticating with Google Sheets: ${error.message}`, true);
         throw error;
     }
 }
@@ -73,9 +98,11 @@ async function saveDealsToGoogleSheets(deals) {
     }
 
     try {
+        log(`Authenticating with Google Sheets...`);
         const sheets = await getGoogleSheetsAuth();
         
         // Sort deals by add_time (newest first)
+        log(`Sorting ${deals.length} deals by date (newest first)...`);
         deals.sort((a, b) => new Date(b.add_time) - new Date(a.add_time));
         
         // Prepare header row
@@ -90,18 +117,21 @@ async function saveDealsToGoogleSheets(deals) {
         });
         
         // Prepare rows for Google Sheets
+        log(`Preparing data for Google Sheets...`);
         const rows = [headers];
         deals.forEach(deal => {
             rows.push(formatDealForSheets(deal));
         });
         
         // Clear the existing content
+        log(`Clearing existing content in sheet "${GOOGLE_SHEET_NAME}"...`);
         await sheets.spreadsheets.values.clear({
             spreadsheetId: GOOGLE_SHEETS_ID,
             range: `${GOOGLE_SHEET_NAME}!A1:Z`
         });
         
         // Write the new data
+        log(`Writing ${rows.length} rows to Google Sheets...`);
         const response = await sheets.spreadsheets.values.update({
             spreadsheetId: GOOGLE_SHEETS_ID,
             range: `${GOOGLE_SHEET_NAME}!A1`,
@@ -111,10 +141,10 @@ async function saveDealsToGoogleSheets(deals) {
             }
         });
         
-        console.log(`✓ ${response.data.updatedCells} cells updated in Google Sheets`);
+        log(`✓ Successfully updated ${response.data.updatedCells} cells in Google Sheets`);
         return true;
     } catch (error) {
-        console.error(`✗ Error saving to Google Sheets: ${error.message}`);
+        log(`Error saving to Google Sheets: ${error.message}`, true);
         return false;
     }
 }
@@ -154,7 +184,7 @@ async function fetchDeals(options = {}) {
         if (options.since) baseQueryParams.start_date = options.since;
         if (options.until) baseQueryParams.end_date = options.until;
 
-        console.log('Fetching deals with filters:', JSON.stringify(options));
+        log(`Fetching deals with filters: ${JSON.stringify(options)}`);
         
         while (hasMoreItems) {
             pageCount++;
@@ -162,14 +192,14 @@ async function fetchDeals(options = {}) {
             // Update start parameter for each request
             baseQueryParams.start = start;
             
-            console.log(`Fetching page ${pageCount} with start=${start}...`);
+            log(`Fetching page ${pageCount} with start=${start}...`);
             
             const response = await axios.get(`${PIPEDRIVE_BASE_URL}/deals`, {
                 params: baseQueryParams
             });
             
             const deals = response.data.data || [];
-            console.log(`Retrieved ${deals.length} deals on this page.`);
+            log(`Retrieved ${deals.length} deals on page ${pageCount}`);
             
             if (deals.length === 0) {
                 hasMoreItems = false;
@@ -183,23 +213,23 @@ async function fetchDeals(options = {}) {
                 // Get the next start value from pagination info
                 if (hasMoreItems) {
                     start = response.data.additional_data?.pagination?.next_start || (start + limit);
-                    console.log(`Retrieved ${allDeals.length} deals so far. Next start: ${start}`);
+                    log(`Retrieved ${allDeals.length} deals so far. Next start: ${start}`);
                     
                     // Add a small delay between requests to avoid rate limits
                     await new Promise(resolve => setTimeout(resolve, 300));
                 } else {
-                    console.log(`No more deals. Pagination complete.`);
+                    log(`No more deals to fetch. Pagination complete.`);
                 }
             }
         }
 
-        console.log(`Pagination summary: Retrieved ${allDeals.length} deals in ${pageCount} pages.`);
+        log(`Pagination summary: Retrieved ${allDeals.length} deals in ${pageCount} pages`);
         return allDeals;
     } catch (error) {
-        console.error('Error fetching deals:', error.message);
+        log(`Error fetching deals: ${error.message}`, true);
         if (error.response) {
-            console.error('Response status:', error.response.status);
-            console.error('Response data:', JSON.stringify(error.response.data));
+            log(`Response status: ${error.response.status}`, true);
+            log(`Response data: ${JSON.stringify(error.response.data)}`, true);
         }
         return [];
     }
@@ -229,8 +259,18 @@ function getFiltersFromEnv() {
 
 async function main() {
     try {
-        console.log("Starting Pipedrive data export...");
+        log("=".repeat(60));
+        log("Starting Pipedrive to Google Sheets export...");
         const startTime = Date.now();
+        
+        // Verify environment variables
+        if (!PIPEDRIVE_API_KEY || !PIPEDRIVE_BASE_URL) {
+            throw new Error("Missing required Pipedrive API credentials in environment variables");
+        }
+        
+        if (!GOOGLE_SHEETS_ID) {
+            throw new Error("Missing Google Sheets ID in environment variables");
+        }
         
         // Get filters from .env file
         const filters = getFiltersFromEnv();
@@ -239,14 +279,14 @@ async function main() {
         const deals = await fetchDeals(filters);
         
         if (deals.length === 0) {
-            console.log("❌ No deals found.");
+            log("❌ No deals found. Check your API credentials and filters.");
         } else {
             // Save deals to Google Sheets
             try {
                 await saveDealsToGoogleSheets(deals);
             } catch (error) {
-                console.log(`⚠️ Failed to save to Google Sheets: ${error.message}`);
-                console.log("Saving data to a file as a fallback...");
+                log(`Failed to save to Google Sheets: ${error.message}`, true);
+                log("Saving data to a file as a fallback...");
                 
                 // Fallback to saving to file if Google Sheets fails
                 const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
@@ -255,9 +295,9 @@ async function main() {
             }
             
             // Output summary information
-            console.log(`\n====================`);
-            console.log(`Total deals retrieved: ${deals.length}`);
-            console.log(`Process completed in ${((Date.now() - startTime) / 1000).toFixed(2)} seconds`);
+            log("=".repeat(40));
+            log(`Total deals retrieved: ${deals.length}`);
+            log(`Process completed in ${((Date.now() - startTime) / 1000).toFixed(2)} seconds`);
             
             // Status distribution
             const statusCounts = deals.reduce((counts, deal) => {
@@ -265,13 +305,15 @@ async function main() {
                 return counts;
             }, {});
             
-            console.log("\nStatus distribution:");
+            log("Status distribution:");
             Object.entries(statusCounts).forEach(([status, count]) => {
-                console.log(`- ${status}: ${count} (${((count / deals.length) * 100).toFixed(1)}%)`);
+                log(`- ${status}: ${count} (${((count / deals.length) * 100).toFixed(1)}%)`);
             });
         }
+        log("=".repeat(60));
     } catch (error) {
-        console.log("⚠️ Error:", error.message);
+        log(`Critical error: ${error.message}`, true);
+        process.exit(1);
     }
 }
 
@@ -310,12 +352,13 @@ async function saveDealsToFile(deals, filename = 'deals.txt') {
     
     try {
         fs.writeFileSync(filePath, fileContent);
-        console.log(`✓ Deal data saved to: ${filePath}`);
+        log(`✓ Deal data saved to: ${filePath}`);
         return true;
     } catch (error) {
-        console.error(`✗ Error saving file: ${error.message}`);
+        log(`Error saving file: ${error.message}`, true);
         return false;
     }
 }
 
+// Run the main function
 main(); 
