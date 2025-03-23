@@ -23,7 +23,6 @@ async function main() {
                 log(`Failed to update Google Sheets. Check logs for more details.`, true);
             }
 
-            // Status summary
             const statusCounts = deals.reduce((counts, deal) => {
                 counts[deal.status] = (counts[deal.status] || 0) + 1;
                 return counts;
