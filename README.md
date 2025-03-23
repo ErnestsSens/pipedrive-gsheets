@@ -30,6 +30,7 @@ This project allows you to fetch deals from Pipedrive and export them to Google 
 You can set the following filters in your `.env` file:
 
 - `FILTER_STATUS` - deal status (open, won, lost, deleted)
+- `FILTER_ID` - filter ID
 - `FILTER_USER_ID` - user ID
 - `FILTER_STAGE_ID` - deal stage ID
 - `FILTER_SINCE` - start date (YYYY-MM-DD format)
