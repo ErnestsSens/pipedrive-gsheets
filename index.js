@@ -179,6 +179,7 @@ async function fetchDeals(options = {}) {
 
         // Add additional filters if specified
         if (options.status) baseQueryParams.status = options.status;
+        if (options.filter_id) baseQueryParams.filter_id = options.filter_id;
         if (options.user_id) baseQueryParams.user_id = options.user_id;
         if (options.stage_id) baseQueryParams.stage_id = options.stage_id;
         if (options.since) baseQueryParams.start_date = options.since;
@@ -241,6 +242,9 @@ function getFiltersFromEnv() {
     
     // Status: open, won, lost, deleted
     if (process.env.FILTER_STATUS) filters.status = process.env.FILTER_STATUS;
+
+    // Filter ID (use a saved filter in Pipedrive)
+    if (process.env.FILTER_ID) filters.filter_id = process.env.FILTER_ID;
     
     // User ID
     if (process.env.FILTER_USER_ID) filters.user_id = process.env.FILTER_USER_ID;
