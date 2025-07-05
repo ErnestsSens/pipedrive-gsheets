@@ -5,6 +5,10 @@ import { sendDiscordMessage, formatWindForecast } from './discord-messenger.js';
 import { config } from './config.js';
 import { fetchYrXml } from './weather-api.js';
 
+console.log(`📍 Atrašanās vieta: LAT ${config.latitude}, LON ${config.longitude}`);
+console.log(`🔧 Sliekšņi: Vēja brāzmas >${config.windGustThreshold} m/s, Vējš >${config.windSpeedThreshold} m/s, Nokrišņi >${config.precipitationThreshold} mm`);
+console.log(`🗓️ Šodien: ${new Date().toISOString().split('T')[0]}`);
+
 const xmlData = await fetchYrXml();
 
 // For testing
