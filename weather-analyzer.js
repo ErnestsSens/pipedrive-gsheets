@@ -50,5 +50,13 @@ export const weatherAnalyzer = (data) => {
   // Sort chronologically
   finalResults.sort((a, b) => new Date(a.from) - new Date(b.from));
 
+  console.log(`\n📊 VĒJA DATI (${config.windDaysAhead} dienas):`);
+  finalResults.forEach(entry => {
+    const date = entry.from.split('T')[0];
+    const wind = entry.wind?.toFixed(1) ?? '–';
+    const gust = entry.gust?.toFixed(1) ?? '–';
+    console.log(`  ${date} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
+  });
+
   return finalResults;
 };

@@ -83,7 +83,7 @@ export const sendDiscordMessage = async (formattedData, recipients) => {
         });
 
         if (response.ok) {
-          console.log(`✅ Ziņojums nosūtīts lietotājam ${discordid}`);
+          console.log(`\n✅ Ziņojums nosūtīts lietotājam ${discordid}`);
         } else {
           const text = await response.text();
           console.error(`❌ Kļūda sūtot ziņojumu lietotājam ${discordid}: HTTP ${response.status}`);
