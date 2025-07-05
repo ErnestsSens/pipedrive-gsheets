@@ -2,10 +2,7 @@ import { config } from './config.js';
 
 export const formatWindForecast = (data) => {
   if (!data.length) {
-    return {
-      raw: [],
-      text: 'Nav datu.',
-    };
+    return null;
   }
 
   // Sort by time to ensure proper order
