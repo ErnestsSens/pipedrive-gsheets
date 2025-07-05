@@ -14,7 +14,7 @@ export const fetchYrXml = () => {
       path: url.pathname + url.search,
       method: 'GET',
       headers: {
-        'User-Agent': 'WeatherChecker/1.0 (ernests.sens@gmail.com)', // required by YR API
+        'User-Agent': `WeatherChecker/1.0 (${config.email})`, // required by YR API
       },
     };
 

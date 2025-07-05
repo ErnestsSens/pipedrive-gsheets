@@ -12,6 +12,7 @@ export const config = (() => {
     'BEARER_TOKEN',
     'ENDPOINT_URL',
     'DISCORD_MESSAGE_MAX_LENGTH',
+    'EMAIL',
   ];
 
   const missing = requiredEnv.filter(key => !process.env[key]);
@@ -45,5 +46,6 @@ export const config = (() => {
 
     apiUrl: `https://api.met.no/weatherapi/locationforecast/2.0/classic?lat=${latitude}&lon=${longitude}`,
     discordMessageMaxLength: parseInt(process.env.DISCORD_MESSAGE_MAX_LENGTH),
+    email: process.env.EMAIL,
   };
 })();
