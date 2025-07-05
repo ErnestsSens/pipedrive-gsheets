@@ -22,4 +22,9 @@ const finalResults = weatherAnalyzer(data);
 const formatted = formatWindForecast(finalResults);
 
 // ✅ Send formatted message to Discord with wind data
+if (!formatted) {
+  console.log('ℹ️ Nav datu par vēju — ziņa netiks sūtīta.\n');
+  process.exit(0); 
+}
+
 sendDiscordMessage(formatted, config.windUserIds);
