@@ -9,8 +9,8 @@ console.log(`\n📍 Atrašanās vieta: LAT ${config.latitude}, LON ${config.long
 console.log(`🔧 Sliekšņi: Vēja brāzmas >${config.windGustThreshold} m/s, Vējš >${config.windSpeedThreshold} m/s, Nokrišņi >${config.precipitationThreshold} mm`);
 console.log(`🗓️ Šodien: ${new Date().toISOString().split('T')[0]}`);
 
-const testing = true;
-const needTestingData = true;
+const testing = false;
+const needTestingData = false;
 
 let xmlData;
 
