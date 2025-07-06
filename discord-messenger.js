@@ -41,8 +41,6 @@ export const formatWindForecast = (data) => {
   };
 };
 
-
-
 /**
  * Nosūta ziņu uz Discord visiem norādītajiem lietotājiem.
  * @param {Object} formattedData - Objektam jābūt formātā { text: '...', raw: [...] }

@@ -18,13 +18,13 @@ const xmlData = await fetchYrXml();
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' });
 const data = parser.parse(xmlData);
 
-const finalResults = weatherAnalyzer(data);
-const formatted = formatWindForecast(finalResults);
+const results = weatherAnalyzer(data);
+const formattedWindResults = formatWindForecast(results);
 
 // ✅ Send formatted message to Discord with wind data
-if (!formatted) {
+if (!formattedWindResults) {
   console.log('ℹ️ Nav datu par vēju — ziņa netiks sūtīta.\n');
   process.exit(0); 
 }
 
-sendDiscordMessage(formatted, config.windUserIds);
+sendDiscordMessage(formattedWindResults, config.windUserIds);
