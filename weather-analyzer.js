@@ -5,6 +5,7 @@ export const weatherAnalyzer = (data) => {
 
   const resultsWind = [];
   const resultsPrecipitation = [];
+  const resultsSuperHighPrecipitation = [];
 
   const startDate = data.weatherdata.meta.model.from;
   const toPrecipitation = addDays(startDate, config.precipitationDaysAhead);
@@ -29,14 +30,26 @@ export const weatherAnalyzer = (data) => {
       if (wind >= config.windSpeedThreshold) {
         resultsWind.push({ from, to, wind, gust: null });
       }
-    } else {
-      if ((precValue !== null || precMinValue !== null || precMaxValue !== null) &&
-        new Date(to) < toPrecipitation && differenceInHours(new Date(to), new Date(from)) === 1 &&
-        (precValue >= config.precipitationThreshold ||
-          precMinValue >= config.precipitationThreshold ||
-          precMaxValue >= config.precipitationThreshold)) {
+    }
+
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if ((precValue !== null || precMinValue !== null || precMaxValue !== null) &&
+      toDate < toPrecipitation &&
+      differenceInHours(toDate, fromDate) === 1) {
+      if ((precValue >= config.precipitationThreshold ||
+        precMinValue >= config.precipitationThreshold ||
+        precMaxValue >= config.precipitationThreshold
+      )) {
         resultsPrecipitation.push({ from, to, precValue, precMinValue, precMaxValue });
-        // datumu rendžā un pāri vērtībai
+      }
+
+      if ((precValue >= config.superHighPrecipitationThreshold ||
+        precMinValue >= config.superHighPrecipitationThreshold ||
+        precMaxValue >= config.superHighPrecipitationThreshold
+      )) {
+        resultsSuperHighPrecipitation.push({ from, to, precValue, precMinValue, precMaxValue });
       }
     }
   });
@@ -70,11 +83,34 @@ export const weatherAnalyzer = (data) => {
 
   console.log(`\n📊 VĒJA DATI (${config.windDaysAhead} dienas):`);
   finalWindResults.forEach(entry => {
-    const date = entry.from.split('T')[0];
+    const [date, fullTime] = entry.from.split('T');
+    const time = fullTime.slice(0, 5);
     const wind = entry.wind?.toFixed(1) ?? '–';
     const gust = entry.gust?.toFixed(1) ?? '–';
-    console.log(`  ${date} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
+    console.log(`  ${date} - ${time} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
   });
 
-  return { finalWindResults, resultsPrecipitation };
+  console.log(`\n📊 NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
+  resultsPrecipitation.forEach(entry => {
+    const [date, fullTime] = entry.from.split('T');
+    const time = fullTime.slice(0, 5);
+    const value = entry.precValue?.toFixed(1) ?? '–';
+    const minValue = entry.precMinValue?.toFixed(1) ?? '–';
+    const maxValue = entry.precMaxValue?.toFixed(1) ?? '–';
+
+    console.log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
+  });
+
+  console.log(`\n📊 💦💦💦 SUPER LIELO NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
+  resultsSuperHighPrecipitation.forEach(entry => {
+    const [date, fullTime] = entry.from.split('T');
+    const time = fullTime.slice(0, 5);
+    const value = entry.precValue?.toFixed(1) ?? '–';
+    const minValue = entry.precMinValue?.toFixed(1) ?? '–';
+    const maxValue = entry.precMaxValue?.toFixed(1) ?? '–';
+
+    console.log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
+  });
+
+  return { finalWindResults, resultsPrecipitation, resultsSuperHighPrecipitation };
 };

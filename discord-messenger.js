@@ -38,11 +38,11 @@ export const formatWindForecast = (data) => {
 
   return {
     raw,
-    text: '⚠️ Gaidāms stiprs vējš:\n' + raw.join('\n'),
+    text: '\\- - -\n⚠️ 💨💨💨 Gaidāms STIPRS vējš:\n' + raw.join('\n'),
   };
 };
 
-export const formatPrecipForecast = (data) => {
+export const formatPrecipForecast = (data, superHigh = false) => {
   // input data example (array with objects): 
   // [
   //   {
@@ -54,7 +54,7 @@ export const formatPrecipForecast = (data) => {
   //   },
 
   // Needed output example: 
-  // 🌧️⚠️🌧️ Gaidāmi nokrišņi:
+  // 🌧️🌧️🌧️ Gaidāmi nokrišņi:
   // 2025-07-06 10:00 -- 0.0 (0.0-1.9)
   // 2025-07-06 12:00 -- 1.0 (0.1-1.9)
 
@@ -86,7 +86,7 @@ export const formatPrecipForecast = (data) => {
 
   return {
     result,
-    text: '🌧️⚠️🌧️ Gaidāmi nokrišņi:    value (min-max), mm\n' + result.join('\n'),
+    text: `${superHigh ? '\\- - -\n⚠️ 💦💦💦 Gaidāmi SUPER STIPRI nokrišņi' : '\\- - -\n🌧️ Gaidāmi nokrišņi:'}      value (min-max), mm\n ${result.join('\n')}`,
   }
 };
 

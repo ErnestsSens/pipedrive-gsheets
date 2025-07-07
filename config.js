@@ -7,6 +7,7 @@ export const config = (() => {
     'WIND_GUST_THRESHOLD',
     'WIND_SPEED_THRESHOLD',
     'PRECIPITATION_THRESHOLD',
+    'SUPER_HIGH_PRECIPITATION_THRESHOLD',
     'PRECIPITATION_DAYS_AHEAD',
     'WIND_DAYS_AHEAD',
     'BEARER_TOKEN',
@@ -30,9 +31,13 @@ export const config = (() => {
     windGustThreshold: parseFloat(process.env.WIND_GUST_THRESHOLD),
     windSpeedThreshold: parseFloat(process.env.WIND_SPEED_THRESHOLD),
     precipitationThreshold: parseFloat(process.env.PRECIPITATION_THRESHOLD),
+    superHighPrecipitationThreshold: parseFloat(process.env.SUPER_HIGH_PRECIPITATION_THRESHOLD),
 
     precipitationUserIds: process.env.PRECIPITATION_USER_IDS
       ? process.env.PRECIPITATION_USER_IDS.split(',').map(id => id.trim())
+      : [],
+    superHighPrecipitationUserIds: process.env.SUPER_HIGH_PRECIPITATION_USER_IDS
+      ? process.env.SUPER_HIGH_PRECIPITATION_USER_IDS.split(',').map(id => id.trim())
       : [],
     precipitationDaysAhead: parseInt(process.env.PRECIPITATION_DAYS_AHEAD),
 
