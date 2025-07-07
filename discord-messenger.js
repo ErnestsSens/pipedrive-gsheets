@@ -1,5 +1,4 @@
 import { config } from './config.js';
-import { format } from 'date-fns';
 
 export const formatWindForecast = (data) => {
   if (!data.length) {
@@ -14,7 +13,10 @@ export const formatWindForecast = (data) => {
   let previousDateHadGust = false;
 
   for (const entry of sorted) {
-    const [date, timeFull] = entry.from.split('T');
+    const rigaDateStr = new Date(entry.from).toLocaleString('sv-SE', {
+      timeZone: 'Europe/Riga',
+    });
+    const [date, timeFull] = rigaDateStr.split(' ');
     const time = timeFull.slice(0, 5); // HH:mm
 
     // Ja sākas jauna diena un iepriekšējai dienai bija brāzmas – pievieno tukšu rindu
@@ -67,10 +69,10 @@ export const formatPrecipForecast = (data, superHigh = false) => {
   let previousDay = '';
 
   sorted.forEach(entry => {
-    const fromDateObj = new Date(entry.from);
-
-    const date = format(fromDateObj, 'yyyy-MM-dd');
-    const time = format(fromDateObj, 'HH:mm');
+    const rigaDateStr = new Date(entry.from).toLocaleString('sv-SE', {
+      timeZone: 'Europe/Riga',
+    });
+    const [date, time] = rigaDateStr.split(' ');
     const value = entry.precValue;
     const minValue = entry.precMinValue;
     const maxvalue = entry.precMaxValue;
@@ -79,7 +81,7 @@ export const formatPrecipForecast = (data, superHigh = false) => {
       result.push('');
     }
 
-    result.push(`${date} ${time} -- ${value} (${minValue}-${maxvalue})`);
+    result.push(`${date} ${time.slice(0, 5)} -- ${value} (${minValue}-${maxvalue})`);
     previousDay = date;
 
   })
