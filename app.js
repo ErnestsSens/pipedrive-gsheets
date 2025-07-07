@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { XMLParser } from 'fast-xml-parser';
 import { weatherAnalyzer } from './weather-analyzer.js';
-import { sendDiscordMessage, formatWindForecast } from './discord-messenger.js';
+import { sendDiscordMessage, formatWindForecast, formatPrecipForecast } from './discord-messenger.js';
 import { config } from './config.js';
 import { fetchYrXml } from './weather-api.js';
 
@@ -36,13 +36,22 @@ if (needTestingData) {
   fs.writeFileSync('yr-response-JSON.txt', JSON.stringify(data, null, 2), 'utf8');
 }
 
-const results = weatherAnalyzer(data);
-const formattedWindResults = formatWindForecast(results);
+const { finalWindResults: windResults, resultsPrecipitation } = weatherAnalyzer(data);
+const formattedWindResults = formatWindForecast(windResults);
+const formattedPrecipResults = formatPrecipForecast(resultsPrecipitation);
 
 // ✅ Send formatted message to Discord with wind data
-if (!formattedWindResults) {
+const shouldSendWind = !!formattedWindResults; // !! in JavaScript are used to convert any value to a strict boolean (true or false).
+const shouldSendPrecip = !!formattedPrecipResults;
+
+if (!shouldSendWind) {
   console.log('ℹ️ Nav datu par vēju — ziņa netiks sūtīta.\n');
-  process.exit(0);
+}
+if (!shouldSendPrecip) {
+  console.log('ℹ️ Nav datu par nokrišņiem — ziņa netiks sūtīta.\n');
 }
 
-sendDiscordMessage(formattedWindResults, config.windUserIds);
+if (!shouldSendWind && !shouldSendPrecip) process.exit(0);
+
+if (shouldSendWind) sendDiscordMessage(formattedWindResults, config.windUserIds);
+if (shouldSendPrecip) sendDiscordMessage(formattedPrecipResults, config.precipitationUserIds);

@@ -1,8 +1,13 @@
 import { config } from './config.js';
+import { addDays, differenceInHours } from 'date-fns';
 
 export const weatherAnalyzer = (data) => {
 
-  const results = [];
+  const resultsWind = [];
+  const resultsPrecipitation = [];
+
+  const startDate = data.weatherdata.meta.model.from;
+  const toPrecipitation = addDays(startDate, config.precipitationDaysAhead);
 
   data.weatherdata.product.time.forEach(entry => {
     const from = entry.from;
@@ -12,13 +17,26 @@ export const weatherAnalyzer = (data) => {
     const gust = location?.windGust?.mps ? parseFloat(location.windGust.mps) : null;
     const wind = location?.windSpeed?.mps ? parseFloat(location.windSpeed.mps) : null;
 
+    const precValue = location?.precipitation?.value ? parseFloat(location.precipitation.value) : null;
+    const precMinValue = location?.precipitation?.minvalue ? parseFloat(location.precipitation.minvalue) : null;
+    const precMaxValue = location?.precipitation?.maxvalue ? parseFloat(location.precipitation.maxvalue) : null;
+
     if (gust !== null) {
       if (gust >= config.windGustThreshold) {
-        results.push({ from, to, wind, gust });
+        resultsWind.push({ from, to, wind, gust });
+      }
+    } else if (wind !== null) {
+      if (wind >= config.windSpeedThreshold) {
+        resultsWind.push({ from, to, wind, gust: null });
       }
     } else {
-      if (wind !== null && wind >= config.windSpeedThreshold) {
-        results.push({ from, to, wind, gust: null });
+      if ((precValue !== null || precMinValue !== null || precMaxValue !== null) &&
+        new Date(to) < toPrecipitation && differenceInHours(new Date(to), new Date(from)) === 1 &&
+        (precValue >= config.precipitationThreshold ||
+          precMinValue >= config.precipitationThreshold ||
+          precMaxValue >= config.precipitationThreshold)) {
+        resultsPrecipitation.push({ from, to, precValue, precMinValue, precMaxValue });
+        // datumu rendžā un pāri vērtībai
       }
     }
   });
@@ -26,7 +44,7 @@ export const weatherAnalyzer = (data) => {
   // leave only one wind record per day with highest speed
   let highestWindOnlyByDate = {}; // key = YYYY-MM-DD, value = strongest entry
 
-  for (const entry of results) {
+  for (const entry of resultsWind) {
     if (entry.gust === null) {
       const date = entry.from.split('T')[0]; // Get YYYY-MM-DD part
 
@@ -40,23 +58,23 @@ export const weatherAnalyzer = (data) => {
   }
 
   // Get all gust entries
-  const finalResults = results.filter(entry => entry.gust !== null);
+  const finalWindResults = resultsWind.filter(entry => entry.gust !== null);
 
   // Add the best wind-only entry for each day
   Object.values(highestWindOnlyByDate).forEach(entry => {
-    finalResults.push(entry);
+    finalWindResults.push(entry);
   });
 
   // Sort chronologically
-  finalResults.sort((a, b) => new Date(a.from) - new Date(b.from));
+  finalWindResults.sort((a, b) => new Date(a.from) - new Date(b.from));
 
   console.log(`\n📊 VĒJA DATI (${config.windDaysAhead} dienas):`);
-  finalResults.forEach(entry => {
+  finalWindResults.forEach(entry => {
     const date = entry.from.split('T')[0];
     const wind = entry.wind?.toFixed(1) ?? '–';
     const gust = entry.gust?.toFixed(1) ?? '–';
     console.log(`  ${date} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
   });
 
-  return finalResults;
+  return { finalWindResults, resultsPrecipitation };
 };

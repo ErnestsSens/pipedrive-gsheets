@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { format } from 'date-fns';
 
 export const formatWindForecast = (data) => {
   if (!data.length) {
@@ -39,6 +40,54 @@ export const formatWindForecast = (data) => {
     raw,
     text: '⚠️ Gaidāms stiprs vējš:\n' + raw.join('\n'),
   };
+};
+
+export const formatPrecipForecast = (data) => {
+  // input data example (array with objects): 
+  // [
+  //   {
+  //     from: '2025-07-07T18:00:00Z',
+  //     to: '2025-07-07T19:00:00Z',
+  //     precValue: 0.2,
+  //     precMinValue: 0,
+  //     precMaxValue: 1.2
+  //   },
+
+  // Needed output example: 
+  // 🌧️⚠️🌧️ Gaidāmi nokrišņi:
+  // 2025-07-06 10:00 -- 0.0 (0.0-1.9)
+  // 2025-07-06 12:00 -- 1.0 (0.1-1.9)
+
+  if (!data.length) {
+    return null;
+  }
+
+  const sorted = data.slice().sort((a, b) => new Date(a.from) - new Date(b.from));
+  const result = [];
+  let previousDay = '';
+
+  sorted.forEach(entry => {
+    const fromDateObj = new Date(entry.from);
+
+    const date = format(fromDateObj, 'yyyy-MM-dd');
+    const time = format(fromDateObj, 'HH:mm');
+    const value = entry.precValue;
+    const minValue = entry.precMinValue;
+    const maxvalue = entry.precMaxValue;
+
+    if (previousDay && previousDay !== date) {
+      result.push('');
+    }
+
+    result.push(`${date} ${time} -- ${value} (${minValue}-${maxvalue})`);
+    previousDay = date;
+
+  })
+
+  return {
+    result,
+    text: '🌧️⚠️🌧️ Gaidāmi nokrišņi:    value (min-max), mm\n' + result.join('\n'),
+  }
 };
 
 /**
