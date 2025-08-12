@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { log, logError, logWarn } from './helpers.js';
 
 export const formatWindForecast = (data) => {
   if (!data.length) {
@@ -100,12 +101,12 @@ export const formatPrecipForecast = (data, superHigh = false) => {
  */
 export const sendDiscordMessage = async (formattedData, recipients) => {
   if (!config.bearerToken || !config.endpointUrl) {
-    console.error('❌ BEARER_TOKEN vai ENDPOINT_URL nav norādīts .env failā');
+    logError('❌ BEARER_TOKEN vai ENDPOINT_URL nav norādīts .env failā');
     return false;
   }
 
   if (!Array.isArray(recipients) || recipients.length === 0) {
-    console.warn('⚠️ Nav norādīti Discord lietotāju ID, kam sūtīt ziņu.');
+    logWarn('⚠️ Nav norādīti Discord lietotāju ID, kam sūtīt ziņu.');
     return false;
   }
 
@@ -132,15 +133,15 @@ export const sendDiscordMessage = async (formattedData, recipients) => {
         });
 
         if (response.ok) {
-          console.log(`\n✅ Ziņojums nosūtīts lietotājam ${discordid}`);
+          log(`✅ Ziņojums nosūtīts lietotājam ${discordid}`);
         } else {
           const text = await response.text();
-          console.error(`❌ Kļūda sūtot ziņojumu lietotājam ${discordid}: HTTP ${response.status}`);
-          console.error('Response:', text);
+          logError(`❌ Kļūda sūtot ziņojumu lietotājam ${discordid}: HTTP ${response.status}`);
+          logError('Response:', text);
           success = false;
         }
       } catch (error) {
-        console.error(`❌ Kļūda sūtot ziņojumu lietotājam ${discordid}:`, error.message);
+        logError(`❌ Kļūda sūtot ziņojumu lietotājam ${discordid}:`, error.message);
         success = false;
       }
     }

@@ -1,5 +1,6 @@
 import { config } from './config.js';
 import { addDays, differenceInHours } from 'date-fns';
+import { log } from './helpers.js';
 
 export const weatherAnalyzer = (data) => {
 
@@ -81,16 +82,16 @@ export const weatherAnalyzer = (data) => {
   // Sort chronologically
   finalWindResults.sort((a, b) => new Date(a.from) - new Date(b.from));
 
-  console.log(`\n📊 VĒJA DATI (${config.windDaysAhead} dienas):`);
+  log(`📊 VĒJA DATI (${config.windDaysAhead} dienas):`);
   finalWindResults.forEach(entry => {
     const [date, fullTime] = entry.from.split('T');
     const time = fullTime.slice(0, 5);
     const wind = entry.wind?.toFixed(1) ?? '–';
     const gust = entry.gust?.toFixed(1) ?? '–';
-    console.log(`  ${date} - ${time} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
+    log(`  ${date} - ${time} – vējš: ${wind} m/s, brāzmas: ${gust} m/s`);
   });
 
-  console.log(`\n📊 NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
+  log(`📊 NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
   resultsPrecipitation.forEach(entry => {
     const [date, fullTime] = entry.from.split('T');
     const time = fullTime.slice(0, 5);
@@ -98,10 +99,10 @@ export const weatherAnalyzer = (data) => {
     const minValue = entry.precMinValue?.toFixed(1) ?? '–';
     const maxValue = entry.precMaxValue?.toFixed(1) ?? '–';
 
-    console.log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
+    log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
   });
 
-  console.log(`\n📊 💦💦💦 SUPER LIELO NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
+  log(`📊 💦💦💦 SUPER LIELO NOKRIŠŅU DATI (${config.precipitationDaysAhead} dienas):`);
   resultsSuperHighPrecipitation.forEach(entry => {
     const [date, fullTime] = entry.from.split('T');
     const time = fullTime.slice(0, 5);
@@ -109,7 +110,7 @@ export const weatherAnalyzer = (data) => {
     const minValue = entry.precMinValue?.toFixed(1) ?? '–';
     const maxValue = entry.precMaxValue?.toFixed(1) ?? '–';
 
-    console.log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
+    log(`  ${date} - ${time} – nokrišņi: ${value} (${minValue}-${maxValue})`);
   });
 
   return { finalWindResults, resultsPrecipitation, resultsSuperHighPrecipitation };

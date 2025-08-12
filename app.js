@@ -4,10 +4,14 @@ import { weatherAnalyzer } from './weather-analyzer.js';
 import { sendDiscordMessage, formatWindForecast, formatPrecipForecast } from './discord-messenger.js';
 import { config } from './config.js';
 import { fetchYrXml } from './weather-api.js';
+import { log } from './helpers.js';
 
-console.log(`\n📍 Atrašanās vieta: LAT ${config.latitude}, LON ${config.longitude}`);
-console.log(`🔧 Sliekšņi: Vēja brāzmas >${config.windGustThreshold} m/s, Vējš >${config.windSpeedThreshold} m/s, Nokrišņi >${config.precipitationThreshold} mm, Super lieli nokrišņi >${config.superHighPrecipitationThreshold} mm`);
-console.log(`🗓️ Šodien: ${new Date().toISOString().split('T')[0]}`);
+console.log('='.repeat(60));
+const startTime = Date.now();
+
+log(`📍 Atrašanās vieta: LAT ${config.latitude}, LON ${config.longitude}`);
+log(`🔧 Sliekšņi: Vēja brāzmas >${config.windGustThreshold} m/s, Vējš >${config.windSpeedThreshold} m/s, Nokrišņi >${config.precipitationThreshold} mm, Super lieli nokrišņi >${config.superHighPrecipitationThreshold} mm`);
+log(`🗓️ Šodien: ${new Date().toISOString().split('T')[0]}`);
 
 const testing = false;
 const needTestingData = false;
@@ -47,17 +51,19 @@ const shouldSendPrecip = !!formattedPrecipResults;
 const shouldSendSHPrecip = !!formattedSuperHighPrecipResults;
 
 if (!shouldSendWind) {
-  console.log('ℹ️ Nav datu par vēju — ziņa netiks sūtīta.\n');
+  log('ℹ️ Nav datu par vēju — ziņa netiks sūtīta.');
 }
 if (!shouldSendPrecip) {
-  console.log('ℹ️ Nav datu par nokrišņiem — ziņa netiks sūtīta.\n');
+  log('ℹ️ Nav datu par nokrišņiem — ziņa netiks sūtīta.');
 }
 if (!shouldSendSHPrecip) {
-  console.log('ℹ️ Nav datu par SUPER LIELIEM nokrišņiem — ziņa netiks sūtīta.\n');
+  log('ℹ️ Nav datu par SUPER LIELIEM nokrišņiem — ziņa netiks sūtīta.');
 }
 
 if (!shouldSendWind && !shouldSendPrecip && !shouldSendSHPrecip) process.exit(0);
 
-if (shouldSendWind) sendDiscordMessage(formattedWindResults, config.windUserIds);
-if (shouldSendPrecip) sendDiscordMessage(formattedPrecipResults, config.precipitationUserIds);
-if (shouldSendSHPrecip) sendDiscordMessage(formattedSuperHighPrecipResults, config.superHighPrecipitationUserIds);
+if (shouldSendWind) await sendDiscordMessage(formattedWindResults, config.windUserIds);
+if (shouldSendPrecip) await sendDiscordMessage(formattedPrecipResults, config.precipitationUserIds);
+if (shouldSendSHPrecip) await sendDiscordMessage(formattedSuperHighPrecipResults, config.superHighPrecipitationUserIds);
+
+log(`Process completed in ${((Date.now() - startTime) / 1000).toFixed(2)} seconds`, '\n' + '='.repeat(60));
