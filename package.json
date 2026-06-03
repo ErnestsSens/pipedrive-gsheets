@@ -9,9 +9,9 @@
     "check-env": "node -e \"console.log('Checking environment variables...'); const requiredVars = ['API_KEY', 'BASE_URL', 'GOOGLE_SHEETS_ID', 'GOOGLE_APPLICATION_CREDENTIALS']; let missing = requiredVars.filter(v => !process.env[v]); if (missing.length) { console.error('❌ Missing env vars: ' + missing.join(', ')); process.exit(1); } else { console.log('✅ All required environment variables are set.'); }\""
   },
   "dependencies": {
-    "axios": "1.6.0",
+    "axios": "^1.8.4",
     "dotenv": "16.3.1",
-    "googleapis": "148.0.0"
+    "googleapis": "^173.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
