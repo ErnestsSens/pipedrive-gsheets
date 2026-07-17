@@ -1,6 +1,6 @@
-const { CUSTOM_FIELDS } = require('../config/config');
+import { CUSTOM_FIELDS } from '../config/config.js';
 
-function getNested(data, keys, defaultValue = null) {
+export function getNested(data, keys, defaultValue = null) {
     let result = data;
     for (const key of keys) {
         if (result && typeof result === 'object' && key in result) {
@@ -12,7 +12,7 @@ function getNested(data, keys, defaultValue = null) {
     return result;
 }
 
-function formatDealForSheets(deal) {
+export function formatDealForSheets(deal) {
     const row = [
         deal.id,
         deal.add_time,
@@ -33,5 +33,3 @@ function formatDealForSheets(deal) {
 
     return row;
 }
-
-module.exports = { getNested, formatDealForSheets };

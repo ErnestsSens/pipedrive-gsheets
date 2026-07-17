@@ -1,9 +1,7 @@
-require('dotenv').config();
-const path = require('path');
-const { fetchDeals } = require('./lib/pipedrive');
-const { saveDealsToGoogleSheets } = require('./lib/sheets');
-const { log } = require('./lib/logger');
-const { getFiltersFromEnv } = require('./config/config');
+import { getFiltersFromEnv } from './config/config.js';
+import { fetchDeals } from './lib/pipedrive.js';
+import { saveDealsToGoogleSheets } from './lib/sheets.js';
+import { log } from './lib/logger.js';
 
 async function main() {
     try {
